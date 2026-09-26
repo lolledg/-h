@@ -1,14 +1,27 @@
 local url = "https://api.jnkie.com/api/v1/luascripts/public/3ea256e579d4808ccb6a856264f821dd7b7ef8c108612b6462d16c0c064d8a37/download"
 local fileName = "script_descargado.lua"
 
+-- Verificar si writefile existe en tu executor
+if not writefile then
+    warn("Tu executor no soporta la función writefile().")
+    return
+end
+
+-- Descargar el contenido
 local success, response = pcall(function()
     return game:HttpGet(url)
 end)
 
-if success then
-    -- Guardar el contenido en el workspace del executor
-    writefile(fileName, response)
-    print("¡Script guardado exitosamente como: " .. fileName)
+if success and response then
+    local writeSuccess, err = pcall(function()
+        writefile(fileName, response)
+    end)
+    
+    if writeSuccess then
+        print("¡Script guardado exitosamente como: " .. fileName)
+    else
+        warn("Error al escribir el archivo: " .. tostring(err))
+    end
 else
-    warn("Error al descargar el contenido: " tostring(response))
+    warn("Error al descargar la URL: " .. tostring(response))
 end
