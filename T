@@ -1,0 +1,14 @@
+local url = "https://api.jnkie.com/api/v1/luascripts/public/3ea256e579d4808ccb6a856264f821dd7b7ef8c108612b6462d16c0c064d8a37/download"
+local fileName = "script_descargado.lua"
+
+local success, response = pcall(function()
+    return game:HttpGet(url)
+end)
+
+if success then
+    -- Guardar el contenido en el workspace del executor
+    writefile(fileName, response)
+    print("¡Script guardado exitosamente como: " .. fileName)
+else
+    warn("Error al descargar el contenido: " tostring(response))
+end
