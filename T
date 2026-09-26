@@ -1,10 +1,48 @@
-local idk = sethiddenproperty
+-- ==========================================
+-- 🕵️ ATTACH METHOD SPY (Depurador Avanzado)
+-- ==========================================
 
-sethiddenproperty = newcclosure(function(obj, prop, val)
-    print("[sethiddenproperty used]")
-    print("  Object:", obj)
-    print("  Property:", prop)
-    print("  Value:", val)
-
-    return idk(obj, prop, val)
+-- 1. Espiar sethiddenproperty
+local old_sethiddenproperty
+old_sethiddenproperty = hookfunction(sethiddenproperty, function(obj, prop, val)
+    if tostring(prop) == "NetworkOwnershipRule" or tostring(prop) == "NetworkOwner" then
+        print("[🔧 sethiddenproperty] Alterando NetworkOwner en:", tostring(obj))
+    end
+    return old_sethiddenproperty(obj, prop, val)
 end)
+
+-- 2. Espiar firetouchinterest (Súper común en Attach de Hats/Tools)
+if firetouchinterest then
+    local old_firetouchinterest
+    old_firetouchinterest = hookfunction(firetouchinterest, function(part1, part2, toggle)
+        print(string.format("[✋ firetouchinterest] Parte1: %s | Parte2: %s | Toggle: %s", tostring(part1), tostring(part2), tostring(toggle)))
+        return old_firetouchinterest(part1, part2, toggle)
+    end)
+end
+
+-- 3. Espiar qué objetos (Instancias) está creando el script
+local old_instancenew
+old_instancenew = hookfunction(Instance.new, function(className, parent)
+    -- Filtramos solo las instancias usadas para "attachar" cosas
+    if className == "AlignPosition" or className == "AlignOrientation" or className == "Weld" or className == "Motor6D" or className == "Attachment" then
+        print(string.format("[🏗️ Instance.new] Creando Constraint de Attach: %s | Padre: %s", className, tostring(parent)))
+    end
+    return old_instancenew(className, parent)
+end)
+
+-- 4. Espiar metamétodos (__namecall) para interceptar SetNetworkOwner y BreakJoints
+local old_namecall
+old_namecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if method == "SetNetworkOwner" then
+        print(string.format("[🌐 SetNetworkOwner] Objeto: %s | Reclamando control de físicas", tostring(self)))
+    elseif method == "BreakJoints" then
+        print(string.format("[💥 BreakJoints] Rompiendo uniones de: %s (Común en reanimaciones)", tostring(self)))
+    end
+
+    return old_namecall(self, ...)
+end)
+
+print("✅ ATTACH SPY ACTIVADO: Ejecuta ahora el script que quieres investigar. Abre la consola (F9) para ver los resultados.")
