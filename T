@@ -1,22 +1,50 @@
--- Verificamos que tu executor soporte hookfunction
-if not hookfunction then
-    warn("Tu executor no soporta hookfunction, no se puede interceptar sethiddenproperty.")
-    return
+-- Script de verificación para physicreprotate y sethidenpropietary
+
+local function verificarEntorno()
+    print("--------------------------------------------------")
+    print("[*] Iniciando diagnóstico de funciones...")
+    print("--------------------------------------------------")
+
+    -- 1. Verificación de sethidenpropietary / sethiddenproperty
+    local funcionOculta = nil
+    
+    if type(sethidenpropietary) == "function" then
+        funcionOculta = sethidenpropietary
+    elseif type(sethiddenproperty) == "function" then
+        funcionOculta = sethiddenproperty
+    elseif getgenv then
+        if type(getgenv().sethidenpropietary) == "function" then
+            funcionOculta = getgenv().sethidenpropietary
+        elseif type(getgenv().sethiddenproperty) == "function" then
+            funcionOculta = getgenv().sethiddenproperty
+        end
+    end
+
+    if funcionOculta then
+        print("[✔] ESTADO: 'sethidenpropietary' / 'sethiddenproperty' está ACTIVO y disponible.")
+    else
+        print("[✖] ESTADO: 'sethidenpropietary' NO se encuentra en el entorno global.")
+    end
+
+    -- 2. Verificación de physicreprotate
+    local estadoPhysicsRotate = false
+    
+    if physicreprotate ~= nil then
+        estadoPhysicsRotate = true
+    elseif getgenv and getgenv().physicreprotate ~= nil then
+        estadoPhysicsRotate = true
+    elseif _G.physicreprotate ~= nil then
+        estadoPhysicsRotate = true
+    end
+
+    if estadoPhysicsRotate then
+        print("[✔] ESTADO: 'physicreprotate' está DEFINIDO / ACTIVO.")
+    else
+        print("[✖] ESTADO: 'physicreprotate' NO se encuentra detectado.")
+    end
+
+    print("--------------------------------------------------")
 end
 
--- Creamos el hook
-local old_sethiddenproperty
-old_sethiddenproperty = hookfunction(sethiddenproperty, function(obj, prop, val)
-    -- Imprimimos usando tostring() para evitar errores si el objeto o valor es nil o una tabla rara
-    print("\n[⚠️ sethiddenproperty DETECTADO]")
-    print("  Objeto:", tostring(obj))
-    print("  Clase del Objeto:", typeof(obj) == "Instance" and obj.ClassName or typeof(obj))
-    print("  Propiedad:", tostring(prop))
-    print("  Valor:", tostring(val))
-    print("---------------------------------")
-
-    -- Retornamos la función original para que el juego siga funcionando con normalidad
-    return old_sethiddenproperty(obj, prop, val)
-end)
-
-print("✅ Hook de sethiddenproperty activado correctamente.")
+-- Ejecutar la verificación de manera segura
+task.spawn(verificarEntorno)
