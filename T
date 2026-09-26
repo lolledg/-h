@@ -1,48 +1,22 @@
--- ==========================================
--- 🕵️ ATTACH METHOD SPY (Depurador Avanzado)
--- ==========================================
+-- Verificamos que tu executor soporte hookfunction
+if not hookfunction then
+    warn("Tu executor no soporta hookfunction, no se puede interceptar sethiddenproperty.")
+    return
+end
 
--- 1. Espiar sethiddenproperty
+-- Creamos el hook
 local old_sethiddenproperty
 old_sethiddenproperty = hookfunction(sethiddenproperty, function(obj, prop, val)
-    if tostring(prop) == "NetworkOwnershipRule" or tostring(prop) == "NetworkOwner" then
-        print("[🔧 sethiddenproperty] Alterando NetworkOwner en:", tostring(obj))
-    end
+    -- Imprimimos usando tostring() para evitar errores si el objeto o valor es nil o una tabla rara
+    print("\n[⚠️ sethiddenproperty DETECTADO]")
+    print("  Objeto:", tostring(obj))
+    print("  Clase del Objeto:", typeof(obj) == "Instance" and obj.ClassName or typeof(obj))
+    print("  Propiedad:", tostring(prop))
+    print("  Valor:", tostring(val))
+    print("---------------------------------")
+
+    -- Retornamos la función original para que el juego siga funcionando con normalidad
     return old_sethiddenproperty(obj, prop, val)
 end)
 
--- 2. Espiar firetouchinterest (Súper común en Attach de Hats/Tools)
-if firetouchinterest then
-    local old_firetouchinterest
-    old_firetouchinterest = hookfunction(firetouchinterest, function(part1, part2, toggle)
-        print(string.format("[✋ firetouchinterest] Parte1: %s | Parte2: %s | Toggle: %s", tostring(part1), tostring(part2), tostring(toggle)))
-        return old_firetouchinterest(part1, part2, toggle)
-    end)
-end
-
--- 3. Espiar qué objetos (Instancias) está creando el script
-local old_instancenew
-old_instancenew = hookfunction(Instance.new, function(className, parent)
-    -- Filtramos solo las instancias usadas para "attachar" cosas
-    if className == "AlignPosition" or className == "AlignOrientation" or className == "Weld" or className == "Motor6D" or className == "Attachment" then
-        print(string.format("[🏗️ Instance.new] Creando Constraint de Attach: %s | Padre: %s", className, tostring(parent)))
-    end
-    return old_instancenew(className, parent)
-end)
-
--- 4. Espiar metamétodos (__namecall) para interceptar SetNetworkOwner y BreakJoints
-local old_namecall
-old_namecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-
-    if method == "SetNetworkOwner" then
-        print(string.format("[🌐 SetNetworkOwner] Objeto: %s | Reclamando control de físicas", tostring(self)))
-    elseif method == "BreakJoints" then
-        print(string.format("[💥 BreakJoints] Rompiendo uniones de: %s (Común en reanimaciones)", tostring(self)))
-    end
-
-    return old_namecall(self, ...)
-end)
-
-print("✅ ATTACH SPY ACTIVADO: Ejecuta ahora el script que quieres investigar. Abre la consola (F9) para ver los resultados.")
+print("✅ Hook de sethiddenproperty activado correctamente.")
